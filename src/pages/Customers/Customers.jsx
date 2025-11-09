@@ -1,59 +1,18 @@
 import React, { useState } from 'react';
 import './Customers.css';
+import { useCustomers } from '../../hooks/customerQuery';
 
 export default function Customers() {
+  const {
+  customersQuery,
+  createCustomerMutation,
+  updateCustomerMutation,
+  deleteCustomerMutation
+} = useCustomers();
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
-  const [customers, setCustomers] = useState([
-    {
-      id: 1,
-      name: 'Rose Garden Florist',
-      email: 'contact@rosegarden.com',
-      phone: '+1 (555) 123-4567',
-      address: '123 Main St, New York, NY 10001',
-      totalOrders: 45,
-      totalSpent: 12500.00,
-      createAmount: 12500.00,
-      advanceAmount: 5000.00,
-      status: 'active'
-    },
-    {
-      id: 2,
-      name: 'Bloom Boutique',
-      email: 'hello@bloomboutique.com',
-      phone: '+1 (555) 234-5678',
-      address: '456 Oak Ave, Los Angeles, CA 90001',
-      totalOrders: 32,
-      totalSpent: 8900.00,
-      createAmount: 8900.00,
-      advanceAmount: 3500.00,
-      status: 'active'
-    },
-    {
-      id: 3,
-      name: 'Petals & Stems',
-      email: 'info@petalsstems.com',
-      phone: '+1 (555) 345-6789',
-      address: '789 Pine Rd, Chicago, IL 60601',
-      totalOrders: 28,
-      totalSpent: 7200.00,
-      createAmount: 7200.00,
-      advanceAmount: 2800.00,
-      status: 'active'
-    },
-    {
-      id: 4,
-      name: 'Garden Party Events',
-      email: 'events@gardenparty.com',
-      phone: '+1 (555) 456-7890',
-      address: '321 Elm St, Miami, FL 33101',
-      totalOrders: 15,
-      totalSpent: 4500.00,
-      createAmount: 4500.00,
-      advanceAmount: 1500.00,
-      status: 'inactive'
-    }
-  ]);
+const customers = customersQuery.data?.data || [];
+ console.log(customers,'customers')
 
   const [newCustomer, setNewCustomer] = useState({
     name: '',
@@ -66,53 +25,51 @@ export default function Customers() {
 
   const [editingCustomer, setEditingCustomer] = useState(null);
 
-  const filteredCustomers = customers.filter(customer =>
-    customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.phone.includes(searchTerm)
+  const filteredCustomers = customers?.filter(customer =>
+    customer?.name?.toLowerCase()?.includes(searchTerm?.toLowerCase()) ||
+    customer?.email?.toLowerCase()?.includes(searchTerm?.toLowerCase()) ||
+    customer?.phone?.includes(searchTerm)
   );
 
-  const handleAddCustomer = (e) => {
-    e.preventDefault();
-    const customer = {
-      id: customers.length + 1,
-      ...newCustomer,
-      createAmount: parseFloat(newCustomer.createAmount) || 0,
-      advanceAmount: parseFloat(newCustomer.advanceAmount) || 0,
-      totalOrders: 0,
-      totalSpent: parseFloat(newCustomer.createAmount) || 0.00,
-      status: 'active'
-    };
-    setCustomers([...customers, customer]);
-    setNewCustomer({ name: '', email: '', phone: '', address: '', createAmount: 0, advanceAmount: 0 });
-    setShowAddModal(false);
-  };
+  const handleAddCustomer = async (e) => {
+  e.preventDefault();
+  createCustomerMutation.mutate(newCustomer, {
+    onSuccess: () => {
+      setShowAddModal(false);
+      setNewCustomer({
+        name: '',
+        email: '',
+        phone: '',
+        address: '',
+        createAmount: 0,
+        advanceAmount: 0,
+      });
+    },
+  });
+};
+
 
   const handleEditCustomer = (customer) => {
     setEditingCustomer({ ...customer });
   };
+  const handleUpdateCustomer = async (e) => {
+  e.preventDefault();
+  updateCustomerMutation.mutate(editingCustomer, {
+    onSuccess: () => setEditingCustomer(null),
+  });
+};
 
-  const handleUpdateCustomer = (e) => {
-    e.preventDefault();
-    setCustomers(customers.map(c => 
-      c.id === editingCustomer.id 
-        ? { 
-            ...c, 
-            ...editingCustomer,
-            createAmount: parseFloat(editingCustomer.createAmount) || 0,
-            advanceAmount: parseFloat(editingCustomer.advanceAmount) || 0,
-            totalSpent: parseFloat(editingCustomer.createAmount) || c.totalSpent
-          }
-        : c
-    ));
-    setEditingCustomer(null);
-  };
 
-  const handleDeleteCustomer = (id) => {
-    if (window.confirm('Are you sure you want to delete this customer?')) {
-      setCustomers(customers.filter(c => c.id !== id));
-    }
-  };
+
+
+const handleDeleteCustomer = async (id) => {
+  if (window.confirm("Are you sure you want to delete this customer?")) {
+    deleteCustomerMutation.mutate(id);
+  }
+};
+if (customersQuery.isLoading) return <p>Loading customers...</p>;
+if (customersQuery.isError) return <p>Error loading customers.</p>;
+
 
   return (
     <div className="customers-page">
@@ -186,13 +143,13 @@ export default function Customers() {
             </thead>
             <tbody>
               {filteredCustomers.map(customer => (
-                <tr key={customer.id}>
+                <tr key={customer.customerId}>
                   <td>
                     <div className="customer-name-cell">
                       <div className="customer-avatar">{customer.name.charAt(0)}</div>
                       <div>
                         <div className="customer-name">{customer.name}</div>
-                        <div className="customer-id">ID: {customer.id}</div>
+                        <div className="customer-id">ID: {customer.customerId}</div>
                       </div>
                     </div>
                   </td>
@@ -203,10 +160,10 @@ export default function Customers() {
                     </div>
                   </td>
                   <td>
-                    <div className="address-cell">{customer.address}</div>
+                    <div className="address-cell">{customer.address?.country}</div>
                   </td>
                   <td>
-                    <div className="orders-badge">{customer.totalOrders}</div>
+                    <div className="orders-badge">{customer?.ordersCount}</div>
                   </td>
                   <td>
                     <div className="amount-cell">${(customer.createAmount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
@@ -357,14 +314,14 @@ export default function Customers() {
                   required
                 />
               </div>
-              <div className="form-group">
+              {/* <div className="form-group">
                 <label>Address</label>
                 <textarea
                   value={editingCustomer.address}
                   onChange={(e) => setEditingCustomer({ ...editingCustomer, address: e.target.value })}
                   rows="3"
                 />
-              </div>
+              </div> */}
               <div className="form-row">
                 <div className="form-group">
                   <label>Create Amount (Total Sale) *</label>

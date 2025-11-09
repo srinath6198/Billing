@@ -83,6 +83,7 @@ const Layout = () => (
 const AppRoutesContent = () => {
   const dispatch = useDispatch();
   const { isAuthenticated, loading } = useSelector((state) => state.auth);
+  console.log(isAuthenticated,'isAuthenticated')
 
   useEffect(() => {
     // Load user data from localStorage on app start
