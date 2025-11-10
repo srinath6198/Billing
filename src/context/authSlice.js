@@ -17,14 +17,12 @@ export const loginUser = createAsyncThunk(
         email,
         password,
       });
-
-      const { token, user } = response.data;
+      const { token } = response.data.data;
 
       // Store in localStorage
-      localStorage.setItem('flowerfarm_user', JSON.stringify(user));
       localStorage.setItem('flowerfarm_token', token);
 
-      return { token, user };
+      return { token };
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message || 'Invalid credentials'
@@ -47,7 +45,6 @@ export const registerUser = createAsyncThunk(
       const { token, user } = response.data;
 
       // Store in localStorage
-      localStorage.setItem('flowerfarm_user', JSON.stringify(user));
       localStorage.setItem('flowerfarm_token', token);
 
       return { token, user };
@@ -77,13 +74,11 @@ export const logoutUser = createAsyncThunk(
       );
 
       // Clear localStorage
-      localStorage.removeItem('flowerfarm_user');
       localStorage.removeItem('flowerfarm_token');
 
       return response.data;
     } catch (error) {
       // Even if API call fails, clear local storage
-      localStorage.removeItem('flowerfarm_user');
       localStorage.removeItem('flowerfarm_token');
       return rejectWithValue(
         error.response?.data?.message || 'Logout failed'
@@ -145,17 +140,15 @@ const authSlice = createSlice({
       state.token = null;
       state.isAuthenticated = false;
       state.error = null;
-      localStorage.removeItem('flowerfarm_user');
       localStorage.removeItem('flowerfarm_token');
     },
     clearError: (state) => {
       state.error = null;
     },
     loadUserFromStorage: (state) => {
-      const user = localStorage.getItem('flowerfarm_user');
       const token = localStorage.getItem('flowerfarm_token');
-      if (user && token) {
-        state.user = JSON.parse(user);
+      if ( token) {
+        
         state.token = token;
         state.isAuthenticated = true;
       }
@@ -170,7 +163,6 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload.user;
         state.token = action.payload.token;
         state.isAuthenticated = true;
       })
@@ -185,7 +177,6 @@ const authSlice = createSlice({
       })
       .addCase(registerUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload.user;
         state.token = action.payload.token;
         state.isAuthenticated = true;
       })

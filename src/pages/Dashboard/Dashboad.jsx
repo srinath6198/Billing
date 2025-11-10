@@ -4,7 +4,6 @@ import './Dashboard.css';
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  
   return (
     <div className="dashboard-page">
 

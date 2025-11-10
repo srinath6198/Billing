@@ -29,7 +29,7 @@ axiosInstance.interceptors.request.use(
 );
 
 // ✅ Response interceptor: handle unauthorized (401)
-axiosInstance.interceptors.response.use(
+/* axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
@@ -39,5 +39,5 @@ axiosInstance.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-
+ */
 export default axiosInstance;
